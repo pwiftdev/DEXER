@@ -1,5 +1,4 @@
 import { getFeesPool } from "@/lib/db";
-import { fetchCreatorVaultBalance, isCreatorVaultConfigured } from "@/lib/creatorVault";
 import { fetchSolPriceUsd } from "@/lib/solPrice";
 import { DEXSCREENER_UPDATE_COST } from "@/lib/utils";
 import type { CreatorFeesPool } from "@/types";
@@ -28,7 +27,9 @@ async function getDbFeesPool(): Promise<CreatorFeesPool> {
 export async function getFeesPoolStatus(): Promise<CreatorFeesPool> {
   const dbPool = await getDbFeesPool();
 
-  if (!isCreatorVaultConfigured()) {
+  const creatorPk = process.env.CREATOR_PUBLIC_KEY ?? process.env.WATCH_ACCOUNT;
+  const rpcUrl = process.env.SOLANA_RPC_URL;
+  if (!creatorPk?.trim() || !rpcUrl?.trim()) {
     return {
       ...dbPool,
       isLive: false,
@@ -40,6 +41,17 @@ export async function getFeesPoolStatus(): Promise<CreatorFeesPool> {
   let solPriceUsd: number | null = null;
 
   try {
+    const { fetchCreatorVaultBalance, isCreatorVaultConfigured: vaultConfigured } =
+      await import("@/lib/creatorVault");
+
+    if (!vaultConfigured()) {
+      return {
+        ...dbPool,
+        isLive: false,
+        targetAmount: dbPool.targetAmount || DEXSCREENER_UPDATE_COST,
+      };
+    }
+
     [vault, solPriceUsd] = await Promise.all([
       fetchCreatorVaultBalance(),
       fetchSolPriceUsd(),

@@ -6,14 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
-  serverExternalPackages: [
-    "@pump-fun/pump-sdk",
-    "@pump-fun/pump-swap-sdk",
-    "@solana/web3.js",
-    "@solana/spl-token",
-    "bn.js",
-    "buffer",
-  ],
+  serverExternalPackages: ["@solana/web3.js", "@solana/spl-token"],
   images: {
     remotePatterns: [
       {
