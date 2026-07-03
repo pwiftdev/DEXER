@@ -1,17 +1,10 @@
-import { PublicKey } from "@solana/web3.js";
 import {
-  getAssociatedTokenAddressSync,
-  NATIVE_MINT,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+  coinCreatorVaultAta,
+  creatorVaultPda,
+  isValidSolanaAddress,
+} from "./solanaPda";
 import { solanaRpc } from "./solanaRpc";
 
-const PUMP_PROGRAM_ID = new PublicKey(
-  "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
-);
-const PUMP_AMM_PROGRAM_ID = new PublicKey(
-  "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA"
-);
 const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export type CreatorVaultSnapshot = {
@@ -24,35 +17,15 @@ export type CreatorVaultSnapshot = {
 let cachedVault: CreatorVaultSnapshot | null = null;
 let vaultCacheExpiry = 0;
 
-function pumpPda(seeds: Buffer[]): PublicKey {
-  return PublicKey.findProgramAddressSync(seeds, PUMP_PROGRAM_ID)[0];
-}
-
-function pumpAmmPda(seeds: Buffer[]): PublicKey {
-  return PublicKey.findProgramAddressSync(seeds, PUMP_AMM_PROGRAM_ID)[0];
-}
-
-function creatorVaultPda(creator: PublicKey): PublicKey {
-  return pumpPda([Buffer.from("creator-vault"), creator.toBuffer()]);
-}
-
-function coinCreatorVaultAuthorityPda(coinCreator: PublicKey): PublicKey {
-  return pumpAmmPda([Buffer.from("creator_vault"), coinCreator.toBuffer()]);
-}
-
 export function lamportsToSol(lamports: bigint): number {
   return Number(lamports) / LAMPORTS_PER_SOL;
 }
 
-export function getCreatorPublicKey(): PublicKey | null {
+export function getCreatorPublicKey(): string | null {
   const key = process.env.CREATOR_PUBLIC_KEY ?? process.env.WATCH_ACCOUNT;
   if (!key?.trim()) return null;
-
-  try {
-    return new PublicKey(key.trim());
-  } catch {
-    return null;
-  }
+  const trimmed = key.trim();
+  return isValidSolanaAddress(trimmed) ? trimmed : null;
 }
 
 export function getSolanaRpcUrl(): string | null {
@@ -63,18 +36,17 @@ export function getSolanaRpcUrl(): string | null {
 type AccountInfoResult = {
   lamports: number;
   data: [string, string];
-  owner: string;
 };
 
 async function getPumpCreatorVaultLamports(
   rpcUrl: string,
-  creator: PublicKey
+  creator: string
 ): Promise<bigint> {
   const creatorVault = creatorVaultPda(creator);
   const result = await solanaRpc<{ value: AccountInfoResult | null }>(
     rpcUrl,
     "getAccountInfo",
-    [creatorVault.toBase58(), { encoding: "base64" }]
+    [creatorVault, { encoding: "base64" }]
   );
 
   const accountInfo = result.value;
@@ -93,21 +65,15 @@ async function getPumpCreatorVaultLamports(
 
 async function getAmmCreatorVaultLamports(
   rpcUrl: string,
-  creator: PublicKey
+  creator: string
 ): Promise<bigint> {
-  const authority = coinCreatorVaultAuthorityPda(creator);
-  const ata = getAssociatedTokenAddressSync(
-    NATIVE_MINT,
-    authority,
-    true,
-    TOKEN_PROGRAM_ID
-  );
+  const ata = coinCreatorVaultAta(creator);
 
   try {
     const result = await solanaRpc<{ value: { amount: string } }>(
       rpcUrl,
       "getTokenAccountBalance",
-      [ata.toBase58()]
+      [ata]
     );
     return BigInt(result.value.amount);
   } catch {
@@ -115,10 +81,9 @@ async function getAmmCreatorVaultLamports(
   }
 }
 
-/** Same result as OnlinePumpSdk.getCreatorVaultBalanceBothPrograms — HTTP RPC only. */
 export async function fetchCreatorVaultBalanceBothPrograms(
   rpcUrl: string,
-  creator: PublicKey
+  creator: string
 ): Promise<bigint> {
   const [pumpLamports, ammLamports] = await Promise.all([
     getPumpCreatorVaultLamports(rpcUrl, creator),
@@ -128,9 +93,9 @@ export async function fetchCreatorVaultBalanceBothPrograms(
 }
 
 export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot | null> {
-  const creatorPk = getCreatorPublicKey();
+  const creator = getCreatorPublicKey();
   const rpcUrl = getSolanaRpcUrl();
-  if (!creatorPk || !rpcUrl) return null;
+  if (!creator || !rpcUrl) return null;
 
   const now = Date.now();
   const cacheMs = Number(process.env.CREATOR_VAULT_CACHE_MS) || 4_000;
@@ -139,10 +104,7 @@ export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot |
   }
 
   try {
-    const lamports = await fetchCreatorVaultBalanceBothPrograms(
-      rpcUrl,
-      creatorPk
-    );
+    const lamports = await fetchCreatorVaultBalanceBothPrograms(rpcUrl, creator);
     const snapshot: CreatorVaultSnapshot = {
       sol: lamportsToSol(lamports),
       lamports: lamports.toString(),
