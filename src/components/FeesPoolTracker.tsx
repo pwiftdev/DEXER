@@ -1,0 +1,109 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
+import type { CreatorFeesPool } from "@/types";
+import { formatUsd, DEXSCREENER_UPDATE_COST } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
+import { EagleLogo } from "./EagleLogo";
+import { Badge } from "./ui/Badge";
+
+export function FeesPoolTracker() {
+  const [pool, setPool] = useState<CreatorFeesPool | null>(null);
+
+  useEffect(() => {
+    fetch("/api/fees")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success) setPool(res.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const balance = pool?.currentBalance ?? 0;
+  const target = pool?.targetAmount ?? DEXSCREENER_UPDATE_COST;
+  const progress = Math.min((balance / target) * 100, 100);
+  const remaining = Math.max(target - balance, 0);
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 shadow-2xl shadow-black/40">
+      {/* Window chrome */}
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <EagleLogo size="xs" />
+          <div className="flex gap-1.5 sm:hidden">
+            <span className="h-2 w-2 rounded-full bg-zinc-700" />
+            <span className="h-2 w-2 rounded-full bg-zinc-700" />
+            <span className="h-2 w-2 rounded-full bg-zinc-700" />
+          </div>
+          <span className="font-mono text-[11px] text-zinc-500">
+            {BRAND.tickerSymbol.toLowerCase()}-pool.live
+          </span>
+        </div>
+        <Badge variant="accent" className="font-mono">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          Live
+        </Badge>
+      </div>
+
+      <div className="p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Creator fees pool
+            </p>
+            <p className="mt-1 font-mono text-3xl font-medium tracking-tight text-white sm:text-4xl">
+              {formatUsd(balance)}
+            </p>
+            <p className="mt-1 text-sm text-zinc-500">
+              {formatUsd(remaining)} until next payout
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-2xl font-medium text-emerald-400">
+              {progress.toFixed(0)}%
+            </p>
+            <p className="text-xs text-zinc-500">of {formatUsd(target)}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full rounded-full bg-emerald-400"
+          />
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06]">
+          {[
+            { label: "Collected", value: formatUsd(pool?.totalCollected ?? 0) },
+            { label: "Paid out", value: formatUsd(pool?.totalPaidOut ?? 0) },
+            { label: "Update cost", value: formatUsd(target) },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-zinc-950 px-3 py-3">
+              <p className="text-[10px] uppercase tracking-wider text-zinc-500">
+                {stat.label}
+              </p>
+              <p className="mt-0.5 font-mono text-sm font-medium text-white">
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-lg bg-emerald-500/[0.06] px-3.5 py-2.5">
+          <p className="text-xs text-zinc-400">
+            100% of {BRAND.ticker} Pump.fun fees fund the next winner
+          </p>
+          <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-emerald-400/60" />
+        </div>
+      </div>
+    </div>
+  );
+}
