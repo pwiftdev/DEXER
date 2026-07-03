@@ -111,7 +111,7 @@ export async function getFeesPool(): Promise<CreatorFeesPool> {
 
   const [{ data: pool, error: poolError }, { data: topToken, error: topError }] =
     await Promise.all([
-      supabase.from("creator_fees_pool").select("*").eq("id", 1).single(),
+      supabase.from("creator_fees_pool").select("*").eq("id", 1).maybeSingle(),
       supabase
         .from("tokens")
         .select("id")
@@ -123,6 +123,17 @@ export async function getFeesPool(): Promise<CreatorFeesPool> {
 
   if (poolError) throw poolError;
   if (topError) throw topError;
+
+  if (!pool) {
+    return {
+      currentBalance: 0,
+      targetAmount: 299,
+      totalCollected: 0,
+      totalPaidOut: 0,
+      lastPayoutAt: null,
+      nextPayoutTokenId: topToken?.id ?? null,
+    };
+  }
 
   return mapFeesPoolRow(pool, topToken?.id ?? null);
 }

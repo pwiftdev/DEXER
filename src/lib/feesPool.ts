@@ -4,8 +4,29 @@ import { fetchSolPriceUsd } from "@/lib/solPrice";
 import { DEXSCREENER_UPDATE_COST } from "@/lib/utils";
 import type { CreatorFeesPool } from "@/types";
 
+export function getDefaultFeesPool(): CreatorFeesPool {
+  return {
+    currentBalance: 0,
+    targetAmount: DEXSCREENER_UPDATE_COST,
+    totalCollected: 0,
+    totalPaidOut: 0,
+    lastPayoutAt: null,
+    nextPayoutTokenId: null,
+    isLive: false,
+  };
+}
+
+async function getDbFeesPool(): Promise<CreatorFeesPool> {
+  try {
+    return await getFeesPool();
+  } catch (err) {
+    console.error("[feesPool] Supabase fetch failed:", err);
+    return getDefaultFeesPool();
+  }
+}
+
 export async function getFeesPoolStatus(): Promise<CreatorFeesPool> {
-  const dbPool = await getFeesPool();
+  const dbPool = await getDbFeesPool();
 
   if (!isCreatorVaultConfigured()) {
     return {
@@ -15,10 +36,23 @@ export async function getFeesPoolStatus(): Promise<CreatorFeesPool> {
     };
   }
 
-  const [vault, solPriceUsd] = await Promise.all([
-    fetchCreatorVaultBalance(),
-    fetchSolPriceUsd(),
-  ]);
+  let vault;
+  let solPriceUsd: number | null = null;
+
+  try {
+    [vault, solPriceUsd] = await Promise.all([
+      fetchCreatorVaultBalance(),
+      fetchSolPriceUsd(),
+    ]);
+  } catch (err) {
+    console.error("[feesPool] On-chain fetch failed:", err);
+    return {
+      ...dbPool,
+      isLive: false,
+      creatorVaultError:
+        err instanceof Error ? err.message : "Failed to fetch vault balance",
+    };
+  }
 
   if (!vault) {
     return { ...dbPool, isLive: false };
@@ -37,6 +71,6 @@ export async function getFeesPoolStatus(): Promise<CreatorFeesPool> {
     creatorVaultFetchedAt: vault.fetchedAt,
     creatorVaultError: vault.error,
     solPriceUsd,
-    isLive: true,
+    isLive: !vault.error,
   };
 }

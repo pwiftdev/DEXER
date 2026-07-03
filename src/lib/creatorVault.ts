@@ -1,6 +1,4 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { OnlinePumpSdk } from "@pump-fun/pump-sdk";
-import BN from "bn.js";
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 
@@ -14,7 +12,7 @@ export type CreatorVaultSnapshot = {
 let cachedVault: CreatorVaultSnapshot | null = null;
 let vaultCacheExpiry = 0;
 
-export function lamportsBnToSol(lamports: BN): number {
+export function lamportsToSol(lamports: bigint | string | number): number {
   return Number(lamports.toString()) / LAMPORTS_PER_SOL;
 }
 
@@ -35,14 +33,13 @@ export function getSolanaConnection(): Connection | null {
   return new Connection(url, "confirmed");
 }
 
-export async function getCreatorVaultBalanceBothProgramsQuiet(
-  sdk: OnlinePumpSdk,
-  creatorPk: PublicKey
-): Promise<BN> {
+async function loadOnlinePumpSdk() {
   try {
-    return await sdk.getCreatorVaultBalanceBothPrograms(creatorPk);
-  } catch {
-    return new BN(0);
+    const mod = await import("@pump-fun/pump-sdk");
+    return mod.OnlinePumpSdk;
+  } catch (err) {
+    console.error("[creatorVault] Failed to load @pump-fun/pump-sdk:", err);
+    return null;
   }
 }
 
@@ -57,11 +54,23 @@ export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot |
     return cachedVault;
   }
 
+  const OnlinePumpSdk = await loadOnlinePumpSdk();
+  if (!OnlinePumpSdk) {
+    const error = "Pump SDK unavailable on server";
+    if (cachedVault) return { ...cachedVault, error };
+    return {
+      sol: 0,
+      lamports: "0",
+      fetchedAt: new Date().toISOString(),
+      error,
+    };
+  }
+
   try {
     const sdk = new OnlinePumpSdk(connection);
-    const lamports = await getCreatorVaultBalanceBothProgramsQuiet(sdk, creatorPk);
+    const lamports = await sdk.getCreatorVaultBalanceBothPrograms(creatorPk);
     const snapshot: CreatorVaultSnapshot = {
-      sol: lamportsBnToSol(lamports),
+      sol: lamportsToSol(lamports.toString()),
       lamports: lamports.toString(),
       fetchedAt: new Date().toISOString(),
       error: null,
@@ -72,6 +81,7 @@ export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot |
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to fetch creator vault balance";
+    console.error("[creatorVault] RPC fetch failed:", err);
 
     if (cachedVault) {
       return { ...cachedVault, error: message };

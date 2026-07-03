@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import { getFeesPoolStatus } from "@/lib/feesPool";
+import { getDefaultFeesPool, getFeesPoolStatus } from "@/lib/feesPool";
 import type { ApiResponse, CreatorFeesPool } from "@/types";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -9,10 +12,11 @@ export async function GET() {
       success: true,
       data: pool,
     });
-  } catch {
-    return NextResponse.json<ApiResponse<never>>(
-      { success: false, error: "Failed to fetch fees pool" },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("[api/fees] Unhandled error:", err);
+    return NextResponse.json<ApiResponse<CreatorFeesPool>>({
+      success: true,
+      data: getDefaultFeesPool(),
+    });
   }
 }
