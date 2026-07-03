@@ -1,10 +1,10 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import {
-  getAccount,
   getAssociatedTokenAddressSync,
   NATIVE_MINT,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import { solanaRpc } from "./solanaRpc";
 
 const PUMP_PROGRAM_ID = new PublicKey(
   "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
@@ -55,22 +55,36 @@ export function getCreatorPublicKey(): PublicKey | null {
   }
 }
 
-export function getSolanaConnection(): Connection | null {
+export function getSolanaRpcUrl(): string | null {
   const url = process.env.SOLANA_RPC_URL?.trim();
-  if (!url) return null;
-  return new Connection(url, "confirmed");
+  return url || null;
 }
 
+type AccountInfoResult = {
+  lamports: number;
+  data: [string, string];
+  owner: string;
+};
+
 async function getPumpCreatorVaultLamports(
-  connection: Connection,
+  rpcUrl: string,
   creator: PublicKey
 ): Promise<bigint> {
   const creatorVault = creatorVaultPda(creator);
-  const accountInfo = await connection.getAccountInfo(creatorVault);
+  const result = await solanaRpc<{ value: AccountInfoResult | null }>(
+    rpcUrl,
+    "getAccountInfo",
+    [creatorVault.toBase58(), { encoding: "base64" }]
+  );
+
+  const accountInfo = result.value;
   if (!accountInfo) return BigInt(0);
 
+  const dataLength = Buffer.from(accountInfo.data[0], "base64").length;
   const rentExemption = BigInt(
-    await connection.getMinimumBalanceForRentExemption(accountInfo.data.length)
+    await solanaRpc<number>(rpcUrl, "getMinimumBalanceForRentExemption", [
+      dataLength,
+    ])
   );
   const lamports = BigInt(accountInfo.lamports);
   if (lamports <= rentExemption) return BigInt(0);
@@ -78,7 +92,7 @@ async function getPumpCreatorVaultLamports(
 }
 
 async function getAmmCreatorVaultLamports(
-  connection: Connection,
+  rpcUrl: string,
   creator: PublicKey
 ): Promise<bigint> {
   const authority = coinCreatorVaultAuthorityPda(creator);
@@ -90,34 +104,33 @@ async function getAmmCreatorVaultLamports(
   );
 
   try {
-    const tokenAccount = await getAccount(
-      connection,
-      ata,
-      undefined,
-      TOKEN_PROGRAM_ID
+    const result = await solanaRpc<{ value: { amount: string } }>(
+      rpcUrl,
+      "getTokenAccountBalance",
+      [ata.toBase58()]
     );
-    return tokenAccount.amount;
+    return BigInt(result.value.amount);
   } catch {
     return BigInt(0);
   }
 }
 
-/** Same result as OnlinePumpSdk.getCreatorVaultBalanceBothPrograms — RPC only, no Pump SDK. */
+/** Same result as OnlinePumpSdk.getCreatorVaultBalanceBothPrograms — HTTP RPC only. */
 export async function fetchCreatorVaultBalanceBothPrograms(
-  connection: Connection,
+  rpcUrl: string,
   creator: PublicKey
 ): Promise<bigint> {
   const [pumpLamports, ammLamports] = await Promise.all([
-    getPumpCreatorVaultLamports(connection, creator),
-    getAmmCreatorVaultLamports(connection, creator),
+    getPumpCreatorVaultLamports(rpcUrl, creator),
+    getAmmCreatorVaultLamports(rpcUrl, creator),
   ]);
   return pumpLamports + ammLamports;
 }
 
 export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot | null> {
   const creatorPk = getCreatorPublicKey();
-  const connection = getSolanaConnection();
-  if (!creatorPk || !connection) return null;
+  const rpcUrl = getSolanaRpcUrl();
+  if (!creatorPk || !rpcUrl) return null;
 
   const now = Date.now();
   const cacheMs = Number(process.env.CREATOR_VAULT_CACHE_MS) || 4_000;
@@ -127,7 +140,7 @@ export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot |
 
   try {
     const lamports = await fetchCreatorVaultBalanceBothPrograms(
-      connection,
+      rpcUrl,
       creatorPk
     );
     const snapshot: CreatorVaultSnapshot = {
@@ -158,5 +171,5 @@ export async function fetchCreatorVaultBalance(): Promise<CreatorVaultSnapshot |
 }
 
 export function isCreatorVaultConfigured(): boolean {
-  return Boolean(getCreatorPublicKey() && getSolanaConnection());
+  return Boolean(getCreatorPublicKey() && getSolanaRpcUrl());
 }
