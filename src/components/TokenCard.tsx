@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {
   ArrowDownRight,
   ArrowUpRight,
+  Crown,
   ExternalLink,
   ShieldCheck,
   ShieldX,
@@ -39,29 +40,39 @@ export function TokenCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: rank * 0.04, duration: 0.3 }}
       className={cn(
-        "group relative rounded-xl border bg-zinc-950 transition-all duration-200",
+        "group relative overflow-hidden rounded-2xl border bg-[#0a0a0d] transition-all duration-300",
         isLeader
-          ? "border-emerald-500/25 shadow-lg shadow-emerald-500/[0.04]"
-          : "border-white/[0.08] hover:border-white/[0.12]",
+          ? "border-emerald-500/30 shadow-[inset_0_1px_0_rgba(52,211,153,0.12),0_0_48px_-12px_rgba(52,211,153,0.2)]"
+          : "border-white/[0.07] hover:border-white/[0.14] hover:bg-zinc-900/40 hover:shadow-[0_8px_32px_-16px_rgba(0,0,0,0.6)]",
         !token.qualified && "opacity-60"
       )}
     >
+      {isLeader && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
+      )}
+
       <div className="flex items-center gap-4 p-4 sm:p-5">
         {/* Rank */}
         <div className="hidden w-8 shrink-0 text-center sm:block">
-          <span
-            className={cn(
-              "font-mono text-sm",
-              isLeader ? "font-medium text-emerald-400" : "text-zinc-600"
-            )}
-          >
-            {String(rank).padStart(2, "0")}
-          </span>
+          {isLeader ? (
+            <Crown className="mx-auto h-4 w-4 text-emerald-400 [filter:drop-shadow(0_0_8px_rgba(52,211,153,0.5))]" />
+          ) : (
+            <span className="font-mono text-sm text-zinc-600">
+              {String(rank).padStart(2, "0")}
+            </span>
+          )}
         </div>
 
         {/* Avatar */}
         <div className="relative shrink-0">
-          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-900">
+          <div
+            className={cn(
+              "flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border bg-zinc-900",
+              isLeader
+                ? "border-emerald-500/30 shadow-[0_0_16px_-4px_rgba(52,211,153,0.4)]"
+                : "border-white/[0.08]"
+            )}
+          >
             {token.imageUrl ? (
               <Image
                 src={token.imageUrl}
@@ -133,7 +144,14 @@ export function TokenCard({
             </p>
           </div>
           <div className="w-16 text-right">
-            <p className="font-mono text-sm font-medium text-white">
+            <p
+              className={cn(
+                "font-mono text-sm font-medium",
+                isLeader
+                  ? "text-emerald-400 [text-shadow:0_0_16px_rgba(52,211,153,0.35)]"
+                  : "text-white"
+              )}
+            >
               {token.upvotes}
             </p>
             <p className="text-[10px] uppercase tracking-wider text-zinc-600">
@@ -148,7 +166,7 @@ export function TokenCard({
             href={token.dexscreenerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] text-zinc-500 transition-colors hover:border-white/[0.15] hover:text-zinc-300"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-zinc-500 transition-all duration-200 hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-zinc-200"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
@@ -168,7 +186,7 @@ export function TokenCard({
       </div>
 
       {/* Mobile stats row */}
-      <div className="flex items-center gap-4 border-t border-white/[0.05] px-4 py-2.5 lg:hidden">
+      <div className="flex items-center gap-4 border-t border-white/[0.05] bg-white/[0.01] px-4 py-2.5 lg:hidden">
         <span className="font-mono text-xs text-zinc-500">
           MCap {formatUsd(token.marketCap)}
         </span>

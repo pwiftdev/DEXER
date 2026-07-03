@@ -27,9 +27,9 @@ export function FeesPoolTracker() {
   const remaining = Math.max(target - balance, 0);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-950 shadow-2xl shadow-black/40">
+    <div className="overflow-hidden rounded-2xl bg-[#0a0a0d] shadow-[0_32px_64px_-24px_rgba(0,0,0,0.7)]">
       {/* Window chrome */}
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+      <div className="flex items-center justify-between border-b border-white/[0.06] bg-white/[0.015] px-4 py-3">
         <div className="flex items-center gap-2.5">
           <EagleLogo size="xs" />
           <div className="flex gap-1.5 sm:hidden">
@@ -64,29 +64,29 @@ export function FeesPoolTracker() {
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-2xl font-medium text-emerald-400">
+            <p className="font-mono text-2xl font-medium text-emerald-400 [text-shadow:0_0_24px_rgba(52,211,153,0.35)]">
               {progress.toFixed(0)}%
             </p>
             <p className="text-xs text-zinc-500">of {formatUsd(target)}</p>
           </div>
         </div>
 
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+        <div className="mt-5 h-2 overflow-hidden rounded-full bg-zinc-800/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="h-full rounded-full bg-emerald-400"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
           />
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06]">
+        <div className="mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.06]">
           {[
             { label: "Collected", value: formatUsd(pool?.totalCollected ?? 0) },
             { label: "Paid out", value: formatUsd(pool?.totalPaidOut ?? 0) },
             { label: "Update cost", value: formatUsd(target) },
           ].map((stat) => (
-            <div key={stat.label} className="bg-zinc-950 px-3 py-3">
+            <div key={stat.label} className="bg-[#0a0a0d] px-3 py-3">
               <p className="text-[10px] uppercase tracking-wider text-zinc-500">
                 {stat.label}
               </p>
@@ -97,7 +97,7 @@ export function FeesPoolTracker() {
           ))}
         </div>
 
-        <div className="mt-4 flex items-center justify-between rounded-lg bg-emerald-500/[0.06] px-3.5 py-2.5">
+        <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-500/[0.12] bg-emerald-500/[0.06] px-3.5 py-2.5">
           <p className="text-xs text-zinc-400">
             100% of {BRAND.ticker} Pump.fun fees fund the next winner
           </p>

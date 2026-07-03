@@ -87,7 +87,7 @@ export function ApplyForm() {
   };
 
   return (
-    <section id="apply" className="py-20 sm:py-28">
+    <section id="apply" className="relative overflow-hidden py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="section-divider mb-20 sm:mb-16" />
 
@@ -100,7 +100,8 @@ export function ApplyForm() {
             className="mb-10"
           />
 
-          <div className="rounded-xl border border-white/[0.08] bg-zinc-950 p-6 sm:p-8">
+          <div className="glass-card relative rounded-2xl p-6 sm:p-8">
+            <div className="pointer-events-none absolute -inset-8 -z-10 rounded-[32px] bg-emerald-500/[0.04] blur-2xl" />
             {success ? (
               <div className="py-4 text-center">
                 <div className="mx-auto flex justify-center">
@@ -141,7 +142,7 @@ export function ApplyForm() {
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder="Solana mint address..."
-                    className="flex-1 rounded-lg border border-white/[0.08] bg-zinc-900 px-4 py-2.5 font-mono text-sm text-white placeholder:text-zinc-600 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10"
+                    className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-zinc-900/80 px-4 py-2.5 font-mono text-sm text-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] transition-all duration-200 placeholder:text-zinc-600 focus:border-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/15"
                   />
                   <Button
                     onClick={handlePreview}
@@ -181,10 +182,10 @@ export function ApplyForm() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
-                      className="mt-6 rounded-lg border border-white/[0.08] bg-zinc-900/50 p-4"
+                      className="mt-6 rounded-xl border border-white/[0.08] bg-zinc-900/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-900">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-zinc-900">
                           {preview.imageUrl ? (
                             <Image
                               src={preview.imageUrl}

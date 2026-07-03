@@ -5,7 +5,7 @@ import { SectionHeader } from "./ui/SectionHeader";
 
 export function ProblemSection() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="relative overflow-hidden py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="section-divider mb-20 sm:mb-28" />
 
@@ -21,9 +21,11 @@ export function ProblemSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="rounded-xl border border-white/[0.08] bg-zinc-950 p-6 sm:p-8"
+            className="glass-card relative rounded-2xl p-6 sm:p-8"
           >
-            <div className="space-y-4">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-500/[0.07] blur-3xl" />
+
+            <div className="relative space-y-4">
               {[
                 {
                   label: "Traditional path",
@@ -40,10 +42,10 @@ export function ProblemSection() {
               ].map((row) => (
                 <div
                   key={row.label}
-                  className={`flex items-center justify-between rounded-lg border px-4 py-4 ${
+                  className={`flex items-center justify-between rounded-xl border px-4 py-4 transition-colors duration-300 ${
                     row.muted
                       ? "border-white/[0.05] bg-zinc-900/30"
-                      : "border-emerald-500/20 bg-emerald-500/[0.04]"
+                      : "border-emerald-500/25 bg-emerald-500/[0.05] shadow-[inset_0_1px_0_rgba(52,211,153,0.1),0_0_32px_-8px_rgba(52,211,153,0.15)]"
                   }`}
                 >
                   <div>
@@ -54,7 +56,9 @@ export function ProblemSection() {
                   </div>
                   <p
                     className={`font-mono text-2xl font-medium ${
-                      row.muted ? "text-zinc-500 line-through" : "text-emerald-400"
+                      row.muted
+                        ? "text-zinc-500 line-through"
+                        : "text-emerald-400 [text-shadow:0_0_24px_rgba(52,211,153,0.35)]"
                     }`}
                   >
                     {row.value}
@@ -63,9 +67,9 @@ export function ProblemSection() {
               ))}
             </div>
 
-            <p className="mt-6 text-sm leading-relaxed text-zinc-500">
-              Strong communities earn free exposure. Weak ones don&apos;t qualify.
-              The system is meritocratic by design.
+            <p className="relative mt-6 text-sm leading-relaxed text-zinc-500">
+              Strong communities earn free exposure. Weak ones don&apos;t
+              qualify. The system is meritocratic by design.
             </p>
           </motion.div>
         </div>

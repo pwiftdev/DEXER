@@ -3,10 +3,14 @@ import { cn } from "@/lib/utils";
 type BadgeVariant = "default" | "accent" | "success" | "warning" | "muted";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-white/5 text-zinc-300 border-white/10",
-  accent: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  default:
+    "bg-white/5 text-zinc-300 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+  accent:
+    "bg-emerald-500/10 text-emerald-300 border-emerald-500/25 shadow-[inset_0_1px_0_rgba(52,211,153,0.15),0_0_16px_-4px_rgba(52,211,153,0.25)]",
+  success:
+    "bg-emerald-500/10 text-emerald-300 border-emerald-500/25 shadow-[inset_0_1px_0_rgba(52,211,153,0.15)]",
+  warning:
+    "bg-amber-500/10 text-amber-300 border-amber-500/25 shadow-[inset_0_1px_0_rgba(251,191,36,0.15)]",
   muted: "bg-zinc-800/50 text-zinc-500 border-white/5",
 };
 

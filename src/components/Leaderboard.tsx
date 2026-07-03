@@ -117,12 +117,12 @@ export function Leaderboard() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-[72px] animate-shimmer rounded-xl border border-white/[0.05]"
+                className="h-[72px] animate-shimmer rounded-2xl border border-white/[0.05]"
               />
             ))}
           </div>
         ) : tokens.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/[0.08] py-20 text-center">
+          <div className="rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.01] py-20 text-center">
             <div className="mx-auto mb-4 flex justify-center opacity-60">
               <EagleLogo size="lg" />
             </div>
