@@ -11,6 +11,12 @@ export function formatUsd(value: number): string {
   return `$${value.toFixed(2)}`;
 }
 
+export function formatSol(value: number): string {
+  if (value >= 1) return `${value.toFixed(3)} SOL`;
+  if (value >= 0.001) return `${value.toFixed(4)} SOL`;
+  return `${value.toFixed(6)} SOL`;
+}
+
 export function formatNumber(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;

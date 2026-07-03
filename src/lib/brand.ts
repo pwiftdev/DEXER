@@ -1,8 +1,8 @@
 export const BRAND = {
   name: "The White Eagle",
   shortName: "White Eagle",
-  ticker: "$DEX",
-  tickerSymbol: "DEX",
+  ticker: "$EAGLE",
+  tickerSymbol: "EAGLE",
   logo: "/eaglelogo.png",
   tagline: "Community-funded DexScreener updates for Solana tokens.",
 } as const;

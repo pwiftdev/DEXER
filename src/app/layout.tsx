@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: `${BRAND.ticker} creator fees pay for DexScreener social updates. List your token, rally your community, win free exposure.`,
   keywords: [
     "White Eagle",
-    "DEX",
+    "EAGLE",
     "Solana",
     "DexScreener",
     "Pump.fun",

@@ -2,7 +2,7 @@
 
 **Community-funded DexScreener updates for Solana tokens.**
 
-$DEX launches on Pump.fun. 100% of creator fees (when the pool reaches $299) pay for a DexScreener social update for whichever token the community votes for most.
+$EAGLE launches on Pump.fun. 100% of creator fees (when the pool reaches $299) pay for a DexScreener social update for whichever token the community votes for most.
 
 ## Quick Start
 
@@ -91,7 +91,7 @@ supabase/
 
 ## Next Steps
 
-- [ ] Track real $DEX creator fees from Pump.fun
+- [ ] Track real $EAGLE creator fees from Pump.fun
 - [ ] Wallet connect for vote verification (optional)
 - [ ] Admin panel for processing DexScreener payouts
-- [ ] Add $DEX Pump.fun link once launched
+- [ ] Add $EAGLE Pump.fun link once launched

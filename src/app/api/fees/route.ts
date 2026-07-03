@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getFeesPool } from "@/lib/db";
+import { getFeesPoolStatus } from "@/lib/feesPool";
 import type { ApiResponse, CreatorFeesPool } from "@/types";
 
 export async function GET() {
   try {
-    const pool = await getFeesPool();
+    const pool = await getFeesPoolStatus();
     return NextResponse.json<ApiResponse<CreatorFeesPool>>({
       success: true,
       data: pool,

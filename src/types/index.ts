@@ -97,6 +97,14 @@ export interface CreatorFeesPool {
   totalPaidOut: number;
   lastPayoutAt: string | null;
   nextPayoutTokenId: string | null;
+  /** Unclaimed creator vault balance in SOL (on-chain) */
+  creatorVaultSol?: number;
+  /** Vault balance converted to USD */
+  creatorVaultUsd?: number | null;
+  creatorVaultFetchedAt?: string | null;
+  creatorVaultError?: string | null;
+  solPriceUsd?: number | null;
+  isLive?: boolean;
 }
 
 export interface VoteRecord {
