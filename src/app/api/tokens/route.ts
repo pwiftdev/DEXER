@@ -5,8 +5,12 @@ import {
   getAllTokens,
   getTokenByAddress,
 } from "@/lib/db";
+import {
+  normalizeDexProfile,
+  validateDexProfile,
+} from "@/lib/validateProfile";
 import { isValidSolanaAddress } from "@/lib/utils";
-import type { ApiResponse, TokenListing } from "@/types";
+import type { ApiResponse, DexScreenerProfile, TokenListing } from "@/types";
 
 export async function GET() {
   try {
@@ -27,10 +31,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const contractAddress = body.contractAddress?.trim();
+    const profileInput = body.profile as Partial<DexScreenerProfile> | undefined;
 
     if (!contractAddress) {
       return NextResponse.json<ApiResponse<never>>(
         { success: false, error: "Contract address is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!profileInput) {
+      return NextResponse.json<ApiResponse<never>>(
+        { success: false, error: "DexScreener profile is required" },
+        { status: 400 }
+      );
+    }
+
+    const validation = validateDexProfile(profileInput);
+    if (!validation.valid) {
+      return NextResponse.json<ApiResponse<never>>(
+        {
+          success: false,
+          error: Object.values(validation.errors)[0] ?? "Invalid profile",
+        },
         { status: 400 }
       );
     }
@@ -68,7 +91,12 @@ export async function POST(request: NextRequest) {
       result.qualified
     );
 
-    const token = await createToken(tokenData);
+    const profile = normalizeDexProfile(profileInput);
+
+    const token = await createToken({
+      ...tokenData,
+      profile,
+    });
 
     return NextResponse.json<ApiResponse<TokenListing>>(
       { success: true, data: token },

@@ -73,6 +73,21 @@ export interface TokenListing {
   qualified: boolean;
   createdAt: string;
   updatedAt: string;
+  profile: DexScreenerProfile | null;
+}
+
+export interface DexScreenerProfile {
+  coinImageUrl: string;
+  bannerUrl: string;
+  description: string;
+  website: string | null;
+  docs: string | null;
+  twitter: string | null;
+  telegram: string | null;
+  discord: string | null;
+  tiktok: string | null;
+  instagram: string | null;
+  extraLink: string | null;
 }
 
 export interface CreatorFeesPool {

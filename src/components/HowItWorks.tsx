@@ -18,14 +18,14 @@ const steps = [
     icon: ListPlus,
     title: "List your token",
     description:
-      "Submit a contract address. We pull name, image, market cap, and volume from DexScreener automatically.",
+      "Submit a contract address — any market cap. We pull name, image, market cap, and volume from DexScreener automatically.",
   },
   {
     step: "03",
     icon: Megaphone,
     title: "Rally your community",
     description:
-      "Holders upvote their pick. One vote per user. Tokens need $10K+ market cap to qualify for payouts.",
+      "Holders upvote their pick. One vote per user. Only $10K+ tokens can win the payout — but anyone can list and vote.",
   },
   {
     step: "04",

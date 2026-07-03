@@ -1,4 +1,4 @@
-import type { CreatorFeesPool, TokenListing } from "@/types";
+import type { CreatorFeesPool, DexScreenerProfile, TokenListing } from "@/types";
 
 export type TokenRow = {
   id: string;
@@ -17,6 +17,17 @@ export type TokenRow = {
   qualified: boolean;
   created_at: string;
   updated_at: string;
+  profile_coin_image: string | null;
+  profile_banner: string | null;
+  profile_description: string | null;
+  profile_website: string | null;
+  profile_docs: string | null;
+  profile_twitter: string | null;
+  profile_telegram: string | null;
+  profile_discord: string | null;
+  profile_tiktok: string | null;
+  profile_instagram: string | null;
+  profile_extra_link: string | null;
 };
 
 export type FeesPoolRow = {
@@ -28,6 +39,26 @@ export type FeesPoolRow = {
   last_payout_at: string | null;
   next_payout_token_id: string | null;
 };
+
+export function mapProfileRow(row: TokenRow): DexScreenerProfile | null {
+  if (!row.profile_coin_image || !row.profile_banner || !row.profile_description) {
+    return null;
+  }
+
+  return {
+    coinImageUrl: row.profile_coin_image,
+    bannerUrl: row.profile_banner,
+    description: row.profile_description,
+    website: row.profile_website,
+    docs: row.profile_docs,
+    twitter: row.profile_twitter,
+    telegram: row.profile_telegram,
+    discord: row.profile_discord,
+    tiktok: row.profile_tiktok,
+    instagram: row.profile_instagram,
+    extraLink: row.profile_extra_link,
+  };
+}
 
 export function mapTokenRow(row: TokenRow): TokenListing {
   return {
@@ -47,11 +78,30 @@ export function mapTokenRow(row: TokenRow): TokenListing {
     qualified: row.qualified,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    profile: mapProfileRow(row),
+  };
+}
+
+export function mapProfileInsert(profile: DexScreenerProfile) {
+  return {
+    profile_coin_image: profile.coinImageUrl,
+    profile_banner: profile.bannerUrl,
+    profile_description: profile.description,
+    profile_website: profile.website,
+    profile_docs: profile.docs,
+    profile_twitter: profile.twitter,
+    profile_telegram: profile.telegram,
+    profile_discord: profile.discord,
+    profile_tiktok: profile.tiktok,
+    profile_instagram: profile.instagram,
+    profile_extra_link: profile.extraLink,
   };
 }
 
 export function mapTokenInsert(
-  data: Omit<TokenListing, "id" | "upvotes" | "createdAt" | "updatedAt">
+  data: Omit<TokenListing, "id" | "upvotes" | "createdAt" | "updatedAt"> & {
+    profile: DexScreenerProfile;
+  }
 ) {
   return {
     contract_address: data.contractAddress,
@@ -66,6 +116,7 @@ export function mapTokenInsert(
     dexscreener_url: data.dexscreenerUrl,
     chain_id: data.chainId,
     qualified: data.qualified,
+    ...mapProfileInsert(data.profile),
   };
 }
 

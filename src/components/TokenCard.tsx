@@ -18,7 +18,9 @@ import { Button } from "./ui/Button";
 interface TokenCardProps {
   token: TokenListing;
   rank: number;
+  isPayoutLeader?: boolean;
   onVote: (id: string) => void;
+  onSelect?: (token: TokenListing) => void;
   isVoting: boolean;
   hasVoted: boolean;
 }
@@ -26,12 +28,13 @@ interface TokenCardProps {
 export function TokenCard({
   token,
   rank,
+  isPayoutLeader = false,
   onVote,
+  onSelect,
   isVoting,
   hasVoted,
 }: TokenCardProps) {
   const isPositive = token.priceChange24h >= 0;
-  const isLeader = rank === 1 && token.qualified;
 
   return (
     <motion.div
@@ -39,22 +42,36 @@ export function TokenCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: rank * 0.04, duration: 0.3 }}
+      onClick={() => onSelect?.(token)}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onKeyDown={
+        onSelect
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(token);
+              }
+            }
+          : undefined
+      }
       className={cn(
         "group relative overflow-hidden rounded-2xl border bg-[#0a0a0d] transition-all duration-300",
-        isLeader
+        onSelect && "cursor-pointer",
+        isPayoutLeader
           ? "border-emerald-500/30 shadow-[inset_0_1px_0_rgba(52,211,153,0.12),0_0_48px_-12px_rgba(52,211,153,0.2)]"
           : "border-white/[0.07] hover:border-white/[0.14] hover:bg-zinc-900/40 hover:shadow-[0_8px_32px_-16px_rgba(0,0,0,0.6)]",
-        !token.qualified && "opacity-60"
+        !token.qualified && "border-white/[0.06]"
       )}
     >
-      {isLeader && (
+      {isPayoutLeader && (
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
       )}
 
       <div className="flex items-center gap-4 p-4 sm:p-5">
         {/* Rank */}
         <div className="hidden w-8 shrink-0 text-center sm:block">
-          {isLeader ? (
+          {isPayoutLeader ? (
             <Crown className="mx-auto h-4 w-4 text-emerald-400 [filter:drop-shadow(0_0_8px_rgba(52,211,153,0.5))]" />
           ) : (
             <span className="font-mono text-sm text-zinc-600">
@@ -68,7 +85,7 @@ export function TokenCard({
           <div
             className={cn(
               "flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border bg-zinc-900",
-              isLeader
+              isPayoutLeader
                 ? "border-emerald-500/30 shadow-[0_0_16px_-4px_rgba(52,211,153,0.4)]"
                 : "border-white/[0.08]"
             )}
@@ -99,9 +116,14 @@ export function TokenCard({
             <span className="shrink-0 font-mono text-xs text-zinc-500">
               ${token.symbol}
             </span>
-            {isLeader && (
+            {isPayoutLeader && (
               <Badge variant="accent" className="hidden sm:inline-flex">
                 Leading
+              </Badge>
+            )}
+            {!token.qualified && (
+              <Badge variant="muted" className="hidden sm:inline-flex">
+                Not payout eligible
               </Badge>
             )}
             {token.qualified ? (
@@ -147,7 +169,7 @@ export function TokenCard({
             <p
               className={cn(
                 "font-mono text-sm font-medium",
-                isLeader
+                isPayoutLeader
                   ? "text-emerald-400 [text-shadow:0_0_16px_rgba(52,211,153,0.35)]"
                   : "text-white"
               )}
@@ -166,19 +188,20 @@ export function TokenCard({
             href={token.dexscreenerUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-zinc-500 transition-all duration-200 hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-zinc-200"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <Button
-            onClick={() => onVote(token.id)}
-            disabled={isVoting || hasVoted || !token.qualified}
+            onClick={(e) => {
+              e.stopPropagation();
+              onVote(token.id);
+            }}
+            disabled={isVoting || hasVoted}
             variant={hasVoted ? "secondary" : "primary"}
             size="sm"
-            className={cn(
-              hasVoted && "text-emerald-400",
-              !token.qualified && "opacity-40"
-            )}
+            className={hasVoted ? "text-emerald-400" : undefined}
           >
             {hasVoted ? "Voted" : isVoting ? "..." : "Vote"}
           </Button>

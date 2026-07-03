@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.dexscreener.com",
       },
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
 };

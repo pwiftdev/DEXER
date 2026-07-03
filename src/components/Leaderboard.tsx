@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import type { TokenListing } from "@/types";
 import { TokenCard } from "./TokenCard";
+import { TokenProfileModal } from "./TokenProfileModal";
 import { EagleLogo } from "./EagleLogo";
 import { getVoterFingerprint } from "@/hooks/useVoterFingerprint";
 import { SectionHeader } from "./ui/SectionHeader";
@@ -16,6 +17,7 @@ export function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [votingId, setVotingId] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+  const [selectedToken, setSelectedToken] = useState<TokenListing | null>(null);
 
   const fetchTokens = useCallback(async () => {
     setLoading(true);
@@ -54,6 +56,9 @@ export function Leaderboard() {
             .map((t) => (t.id === tokenId ? data.data : t))
             .sort((a, b) => b.upvotes - a.upvotes)
         );
+        setSelectedToken((prev) =>
+          prev?.id === tokenId ? data.data : prev
+        );
         const next = new Set(votedIds).add(tokenId);
         setVotedIds(next);
         localStorage.setItem(VOTED_KEY, JSON.stringify([...next]));
@@ -63,11 +68,18 @@ export function Leaderboard() {
     }
   };
 
-  const qualified = tokens.filter((t) => t.qualified);
-  const unqualified = tokens.filter((t) => !t.qualified);
+  const payoutLeaderId =
+    tokens.find((t) => t.qualified)?.id ?? null;
 
   return (
     <section id="leaderboard" className="py-20 sm:py-28">
+      <TokenProfileModal
+        token={selectedToken}
+        onClose={() => setSelectedToken(null)}
+        onVote={handleVote}
+        isVoting={selectedToken ? votingId === selectedToken.id : false}
+        hasVoted={selectedToken ? votedIds.has(selectedToken.id) : false}
+      />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="section-divider mb-20 sm:mb-16" />
 
@@ -75,7 +87,7 @@ export function Leaderboard() {
           <SectionHeader
             label="Leaderboard"
             title="Community votes"
-            description="The top-voted qualified token receives the next DexScreener payout when the fees pool reaches $299."
+            description="Any token can list and collect votes. Only tokens with $10K+ market cap can win the next DexScreener payout when the fees pool reaches $299."
           />
           <Button
             onClick={fetchTokens}
@@ -133,36 +145,18 @@ export function Leaderboard() {
           </div>
         ) : (
           <div className="space-y-2">
-            {qualified.map((token, i) => (
+            {tokens.map((token, i) => (
               <TokenCard
                 key={token.id}
                 token={token}
                 rank={i + 1}
+                isPayoutLeader={token.id === payoutLeaderId}
                 onVote={handleVote}
+                onSelect={setSelectedToken}
                 isVoting={votingId === token.id}
                 hasVoted={votedIds.has(token.id)}
               />
             ))}
-
-            {unqualified.length > 0 && (
-              <div className="pt-8">
-                <p className="mb-3 px-1 text-[10px] uppercase tracking-widest text-zinc-600">
-                  Below $10K threshold
-                </p>
-                <div className="space-y-2">
-                  {unqualified.map((token, i) => (
-                    <TokenCard
-                      key={token.id}
-                      token={token}
-                      rank={qualified.length + i + 1}
-                      onVote={handleVote}
-                      isVoting={votingId === token.id}
-                      hasVoted={votedIds.has(token.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

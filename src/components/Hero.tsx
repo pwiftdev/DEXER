@@ -10,7 +10,7 @@ import { BRAND } from "@/lib/brand";
 
 const stats = [
   { value: "$299", label: "DexScreener update" },
-  { value: "$10K+", label: "Min. market cap" },
+  { value: "$10K+", label: "To win payout" },
   { value: "100%", label: "Fees to community" },
 ];
 

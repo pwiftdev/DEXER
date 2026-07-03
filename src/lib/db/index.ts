@@ -45,7 +45,9 @@ export async function getTokenById(id: string): Promise<TokenListing | null> {
 }
 
 export async function createToken(
-  data: Omit<TokenListing, "id" | "upvotes" | "createdAt" | "updatedAt">
+  data: Omit<TokenListing, "id" | "upvotes" | "createdAt" | "updatedAt"> & {
+    profile: NonNullable<TokenListing["profile"]>;
+  }
 ): Promise<TokenListing> {
   const supabase = await createClient();
   const { data: row, error } = await supabase
